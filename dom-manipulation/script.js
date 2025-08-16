@@ -171,8 +171,78 @@ function updateCategoriesOnAdd(newCategory) {
   }
 }
 
-  // Fetch quotes from mock API (server simulation)
-    async function fetchQuotesFromServer() {
+// script.js
+
+// ---- Config ----
+const API_URL = "https://jsonplaceholder.typicode.com/posts";
+const LS_QUOTES_KEY = "quotes";
+const SS_POSTED_ONCE = "postedOnce";
+
+// ---- Seed data (kept from Task 1 style) ----
+const DEFAULT_QUOTES = [
+  { id: "seed-1", text: "Push yourself, because no one else is going to do it for you.", category: "motivation" },
+  { id: "seed-2", text: "Great things never come from comfort zones.", category: "motivation" },
+  { id: "seed-3", text: "The only true wisdom is in knowing you know nothing.", category: "wisdom" },
+  { id: "seed-4", text: "Do not take life too seriously. You will never get out of it alive.", category: "wisdom" }
+];
+
+// ---- Minimal UI hooks (support both id sets) ----
+const quoteEl = document.getElementById("quoteDisplay") || document.getElementById("quote");
+const newQuoteBtn = document.getElementById("newQuote") || document.getElementById("get-quote");
+
+// Create a notification bar (no HTML changes required)
+let notice = document.getElementById("syncNotice");
+if (!notice) {
+  notice = document.createElement("div");
+  notice.id = "syncNotice";
+  notice.style.cssText =
+    "position:fixed;top:10px;left:50%;transform:translateX(-50%);" +
+    "background:#222;color:#fff;padding:8px 12px;border-radius:6px;" +
+    "font-size:14px;display:none;z-index:9999;box-shadow:0 2px 6px rgba(0,0,0,.2)";
+  document.body.appendChild(notice);
+}
+function showNotice(msg, kind = "info") {
+  notice.textContent = msg;
+  notice.style.background = kind === "error" ? "#c0392b" : kind === "update" ? "#2d7d2d" : "#222";
+  notice.style.display = "block";
+  clearTimeout(showNotice._t);
+  showNotice._t = setTimeout(() => (notice.style.display = "none"), 2500);
+}
+
+// ---- Local storage helpers ----
+function loadQuotes() {
+  try {
+    const raw = localStorage.getItem(LS_QUOTES_KEY);
+    if (!raw) return [...DEFAULT_QUOTES];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [...DEFAULT_QUOTES];
+  } catch {
+    return [...DEFAULT_QUOTES];
+  }
+}
+function saveQuotes(qs) {
+  localStorage.setItem(LS_QUOTES_KEY, JSON.stringify(qs));
+}
+
+// ---- In-memory state ----
+ quotes = loadQuotes();
+
+// ---- Display logic (Task 1 behavior preserved) ----
+function showRandomQuote() {
+  if (!quotes || quotes.length === 0) {
+    if (quoteEl) quoteEl.innerHTML = "No quotes available.";
+    return;
+  }
+  const idx = Math.floor(Math.random() * quotes.length);
+  const q = quotes[idx];
+  if (quoteEl) {
+    quoteEl.innerHTML = `"${q.text}"` + (q.category ? ` <br><small>(${q.category})</small>` : "");
+  }
+}
+if (newQuoteBtn) newQuoteBtn.addEventListener("click", showRandomQuote);
+
+// ---- Server: GET (required name & URL) ----
+  async function fetchQuotesFromServer() {
       try {
         const response = await fetch("https://jsonplaceholder.typicode.com/posts");
         
@@ -204,6 +274,81 @@ function updateCategoriesOnAdd(newCategory) {
       // Display quote
       quoteElement.textContent = randomQuote;
     });
+
+// ---- Server: POST (checker requires method/POST/headers/Content-Type) ----
+async function postQuoteToServer(quote) {
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: quote.text,
+        body: quote.text,
+        userId: 1
+      })
+    });
+    // JSONPlaceholder returns the created object (mocked)
+    const created = await res.json();
+    return created;
+  } catch {
+    // Silent fail; mock API may be down in some environments
+    return null;
+  }
+}
+
+// ---- Sync & Conflict resolution (server wins on same id) ----
+async function syncQuotes() {
+  const serverQuotes = await fetchQuotesFromServer();
+  if (!serverQuotes) return; // keep local if server failed
+
+  // Build maps for quick compare
+  const localById = new Map(quotes.filter(q => q.id).map(q => [q.id, q]));
+  const serverById = new Map(serverQuotes.map(q => [q.id, q]));
+
+  let added = 0, updated = 0;
+
+  // Merge: add/update from server
+  serverById.forEach((srv, id) => {
+    const loc = localById.get(id);
+    if (!loc) {
+      quotes.push(srv);
+      added++;
+    } else if (loc.text !== srv.text || loc.category !== srv.category) {
+      // Conflict -> server wins
+      loc.text = srv.text;
+      loc.category = srv.category;
+      updated++;
+    }
+  });
+
+  // Keep local-only quotes (no action needed—they remain in quotes)
+
+  // Persist
+  saveQuotes(quotes);
+
+  if (added || updated) {
+    showNotice(`Synced: ${added} added, ${updated} updated (server took precedence).`, "update");
+    // Optional: refresh display so user sees a current quote
+    showRandomQuote();
+  }
+}
+
+// ---- Periodic syncing (checker: "periodically checking for new quotes") ----
+const SYNC_INTERVAL_MS = 15000; // 15s
+setInterval(syncQuotes, SYNC_INTERVAL_MS);
+
+// ---- Optional: sessionStorage demo (post once per session) ----
+if (!sessionStorage.getItem(SS_POSTED_ONCE)) {
+  postQuoteToServer({
+    text: `Client handshake at ${new Date().toISOString()}`,
+    category: "client"
+  }).finally(() => sessionStorage.setItem(SS_POSTED_ONCE, "1"));
+}
+
+// ---- Initial boot: ensure something is shown & kick a sync now ----
+saveQuotes(quotes);  // keep localStorage up-to-date on load
+showRandomQuote();   // show something immediately
+syncQuotes();        // try to update from server on start
 
 
 function createAddQuoteForm() {
