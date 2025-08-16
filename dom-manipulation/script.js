@@ -1,56 +1,51 @@
-// Quotes array with objects containing text and category
+// script.js
+
+// Quotes array: objects with text + category
 let quotes = [
-  { text: "The best way to get started is to quit talking and begin doing.", category: "Motivation" },
-  { text: "Don’t let yesterday take up too much of today.", category: "Inspiration" },
-  { text: "It’s not whether you get knocked down, it’s whether you get up.", category: "Resilience" }
+  { text: "Push yourself, because no one else is going to do it for you.", category: "motivation" },
+  { text: "Great things never come from comfort zones.", category: "motivation" },
+  { text: "The only true wisdom is in knowing you know nothing.", category: "wisdom" },
+  { text: "Do not take life too seriously. You will never get out of it alive.", category: "wisdom" }
 ];
 
-// Function to display a random quote
+// Display a random quote and update the DOM
 function displayRandomQuote() {
-  let quoteContainer = document.getElementById("quoteDisplay");
-  if (!quoteContainer) return;
+  const out = document.getElementById("quoteDisplay");
+  if (!Array.isArray(quotes) || quotes.length === 0) {
+    out.innerText = "No quotes available.";
+    return;
+  }
 
-  let randomIndex = Math.floor(Math.random() * quotes.length);
-  let randomQuote = quotes[randomIndex];
+  const i = Math.floor(Math.random() * quotes.length);
+  const q = quotes[i];
 
-  // Update the DOM
-  quoteContainer.innerHTML = `
-    <p><strong>${randomQuote.text}</strong></p>
-    <small>Category: ${randomQuote.category}</small>
-  `;
+  // Update DOM
+  out.innerHTML = `<p>"${q.text}"</p><small>(${q.category})</small>`;
 }
 
-// Function to add a new quote
-function addQuote(text, category) {
-  if (text.trim() === "" || category.trim() === "") return;
+// Add a new quote from inputs, push to array, and update DOM
+function addQuote() {
+  const textEl = document.getElementById("newQuoteText");
+  const catEl  = document.getElementById("newQuoteCategory");
 
-  quotes.push({ text: text, category: category });
+  const text = textEl.value.trim();
+  const category = catEl.value.trim().toLowerCase();
 
-  // Update DOM immediately after adding
-  displayRandomQuote();
+  if (!text || !category) {
+    alert("Please enter both a quote and a category.");
+    return;
+  }
+
+  quotes.push({ text, category });
+
+  // Update DOM to reflect the latest added quote
+  const out = document.getElementById("quoteDisplay");
+  out.innerHTML = `<p>"${text}"</p><small>(${category})</small>`;
+
+  // Clear inputs
+  textEl.value = "";
+  catEl.value = "";
 }
 
-// Function to create a form dynamically to add quotes
-function createAddQuoteForm() {
-  let formContainer = document.getElementById("formContainer");
-  if (!formContainer) return;
-
-  formContainer.innerHTML = `
-    <input type="text" id="quoteText" placeholder="Enter quote" />
-    <input type="text" id="quoteCategory" placeholder="Enter category" />
-    <button id="submitQuote">Add Quote</button>
-  `;
-
-  // Event listener for adding new quote
-  document.getElementById("submitQuote").addEventListener("click", () => {
-    let text = document.getElementById("quoteText").value;
-    let category = document.getElementById("quoteCategory").value;
-    addQuote(text, category);
-  });
-}
-
-// Event listener on “Show New Quote” button
-document.getElementById("newQuoteBtn").addEventListener("click", displayRandomQuote);
-
-// Initialize form on page load
-createAddQuoteForm();
+// Event listener for the “Show New Quote” button
+document.getElementById("newQuote").addEventListener("click", displayRandomQuote);
