@@ -1,22 +1,48 @@
-// Quotes array with objects containing "text" and "category" properties
+// script.js
+
+// Quotes array with objects (text + category)
 let quotes = [
-  { text: "The best way to predict the future is to invent it.", category: "Motivation" },
-  { text: "Do not watch the clock. Do what it does. Keep going.", category: "Inspiration" },
-  { text: "Stay hungry, stay foolish.", category: "Wisdom" }
+  { text: "Push yourself, because no one else is going to do it for you.", category: "motivation" },
+  { text: "Great things never come from comfort zones.", category: "motivation" },
+  { text: "The only true wisdom is in knowing you know nothing.", category: "wisdom" },
+  { text: "Do not take life too seriously. You will never get out of it alive.", category: "wisdom" }
 ];
 
-// Function to display a random quote
-function displayRandomQuote() {
+// ✅ Function: Select a random quote and update DOM
+function showRandomQuote() {
+  if (quotes.length === 0) {
+    document.getElementById("quoteDisplay").innerHTML = "No quotes available.";
+    return;
+  }
+
   let randomIndex = Math.floor(Math.random() * quotes.length);
   let randomQuote = quotes[randomIndex];
-  document.getElementById("quoteDisplay").innerText = `"${randomQuote.text}" - ${randomQuote.category}`;
+
+  document.getElementById("quoteDisplay").innerHTML = `
+    <p>"${randomQuote.text}"</p>
+    <small>(${randomQuote.category})</small>
+  `;
 }
 
-// Function to add a new quote
-function addQuote(text, category) {
-  quotes.push({ text: text, category: category });
-  displayRandomQuote();
+// ✅ Function: Add a new quote dynamically
+function addQuote() {
+  let newQuoteText = document.getElementById("newQuoteText").value.trim();
+  let newQuoteCategory = document.getElementById("newQuoteCategory").value.trim().toLowerCase();
+
+  if (!newQuoteText || !newQuoteCategory) {
+    alert("⚠️ Please enter both quote and category!");
+    return;
+  }
+
+  // Add to quotes array
+  quotes.push({ text: newQuoteText, category: newQuoteCategory });
+
+  alert(`✅ Quote added to category: ${newQuoteCategory}`);
+
+  // Clear input fields
+  document.getElementById("newQuoteText").value = "";
+  document.getElementById("newQuoteCategory").value = "";
 }
 
-// Event listener for "Show New Quote" button
-document.getElementById("newQuoteBtn").addEventListener("click", displayRandomQuote);
+// ✅ Event listener on "Show New Quote" button
+document.getElementById("newQuote").addEventListener("click", showRandomQuote);
