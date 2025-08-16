@@ -84,7 +84,40 @@ function createAddQuoteForm() {
 }
 
 // Run functions when page loads
+
+function createAddQuoteForm() {
+  // Create the container div
+  const div = document.createElement("div");
+  div.id = "userInput"; // ✅ Add the id to the div container
+
+  // Create the first input
+  const inputQuote = document.createElement("input");
+  inputQuote.id = "newQuoteText";
+  inputQuote.type = "text";
+  inputQuote.placeholder = "Enter a new quote";
+
+  // Create the second input
+  const inputCategory = document.createElement("input");
+  inputCategory.id = "newQuoteCategory";
+  inputCategory.type = "text";
+  inputCategory.placeholder = "Enter quote category";
+
+  // Create the button
+  const button = document.createElement("button");
+  button.textContent = "Add Quote";
+  button.onclick = addQuote; // attach the function
+
+  // Append inputs and button to div
+  div.appendChild(inputQuote);
+  div.appendChild(inputCategory);
+  div.appendChild(button);
+
+  // Append the div to the body or another container
+  document.body.appendChild(div);
+}
 window.onload = function () {
   createAddQuoteForm();  
   showRandomQuote(); // optional
 };
+// Call the function to add it to the DOM
+createAddQuoteForm();
