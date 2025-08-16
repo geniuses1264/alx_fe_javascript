@@ -1,11 +1,5 @@
 // script.js
 
-function makeId() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-function nowTs() {
-  return new Date().toISOString();
-}
 
 // Quotes array with objects (text + category)
 let quotes = [
@@ -21,21 +15,9 @@ if (localStorage.getItem("quotes")) {
 }
 
 // ✅ Save quotes to localStorage
-// ---- Local storage helpers (ADD if you don't already have them) ----
 function saveQuotes() {
   localStorage.setItem("quotes", JSON.stringify(quotes));
 }
-function loadQuotes() {
-  try {
-    const raw = localStorage.getItem("quotes");
-    if (!raw) return;
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) {
-      quotes = parsed;
-    }
-  } catch (_) { /* ignore */ }
-}
-
 
 // ✅ Function: Select a random quote and update DOM
 function showRandomQuote() {
@@ -189,180 +171,54 @@ function updateCategoriesOnAdd(newCategory) {
   }
 }
 
-// ---- Simulated server API (ADD) ----
-const SERVER_ENDPOINT = "https://jsonplaceholder.typicode.com/posts"; 
-// We'll map server "posts" -> quotes for demo purposes
+ let serverQuotes = [
+      "The future belongs to those who prepare today.",
+      "Stay hungry, stay foolish.",
+      "Simplicity is the ultimate sophistication."
+    ];
 
-async function fetchServerQuotes() {
-  // Simulate getting quotes from server (map posts to our schema)
-  const res = await fetch(SERVER_ENDPOINT + "?_limit=10");
-  const posts = await res.json();
-  // map to our quote shape (id/text/category/updatedAt/source)
-  // Here we fake category and updatedAt since the mock API doesn't have them
-  return posts.map(p => ({
-    id: String(p.id),
-    text: p.title,
-    category: "server",       // demo category
-    updatedAt: nowTs(),       // pretend they are "fresh"
-    source: "server",
-    dirty: false
-  }));
-}
+    // Local storage data
+    let localQuotes = JSON.parse(localStorage.getItem("quotes")) || [...serverQuotes];
 
-async function pushLocalDirtyQuotes(localDirty) {
-  // Simulate POSTing local quotes that need syncing
-  const results = [];
-  for (const q of localDirty) {
-    const res = await fetch(SERVER_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(q)
-    });
-    const created = await res.json();
-    // JSONPlaceholder returns an id but doesn’t persist;
-    // we’ll mark the quote as clean now.
-    results.push({ ...q, id: String(created.id || q.id), dirty: false, source: "server", updatedAt: nowTs() });
-  }
-  return results;
-}
+    // UI Elements
+    const quoteDisplay = document.getElementById("quote");
+    const notification = document.getElementById("notification");
 
-
-// ---- Merge & conflict resolution (ADD) ----
-function mergeFromServer(serverQuotes) {
-  // Build a map of current local quotes by id
-  const localById = new Map(quotes.map(q => [q.id, q]));
-  let conflictsResolved = 0;
-  let newFromServer = 0;
-
-  for (const srv of serverQuotes) {
-    const local = localById.get(srv.id);
-
-    if (!local) {
-      // new item from server -> add
-      quotes.push(srv);
-      newFromServer++;
-      continue;
+    // Function to show random local quote
+    function showQuote() {
+      let randomIndex = Math.floor(Math.random() * localQuotes.length);
+      quoteDisplay.textContent = localQuotes[randomIndex];
     }
 
-    // same id exists locally: if different text/category or updatedAt -> server wins
-    const different =
-      local.text !== srv.text ||
-      local.category !== srv.category ||
-      local.updatedAt !== srv.updatedAt;
-
-    if (different) {
-      // Resolve in favor of server
-      local.text = srv.text;
-      local.category = srv.category;
-      local.updatedAt = srv.updatedAt;
-      local.source = "server";
-      local.dirty = false;
-      conflictsResolved++;
-    }
-  }
-
-  if (newFromServer || conflictsResolved) {
-    saveQuotes?.();
-    showSyncNotice(`Synced. New from server: ${newFromServer}, conflicts resolved: ${conflictsResolved}.`);
-  }
-}
-
-function markSynced(updatedList) {
-  const updatedById = new Map(updatedList.map(q => [q.id, q]));
-  let changed = 0;
-
-  quotes = quotes.map(q => {
-    const upd = updatedById.get(q.id);
-    if (!upd) return q;
-    changed++;
-    return { ...q, dirty: false, source: "server", updatedAt: upd.updatedAt, id: upd.id };
-  });
-
-  if (changed) saveQuotes?.();
-}
-
-// ---- Sync loop & UI (ADD) ----
-let syncTimer = null;
-
-function showSyncNotice(msg) {
-  let bar = document.getElementById("syncNotice");
-  if (!bar) {
-    bar = document.createElement("div");
-    bar.id = "syncNotice";
-    bar.style.marginTop = "10px";
-    bar.style.padding = "8px 12px";
-    bar.style.borderRadius = "8px";
-    bar.style.background = "#fff";
-    bar.style.color = "#333";
-    bar.style.fontSize = "14px";
-    bar.style.display = "inline-block";
-    const container = document.getElementById("container") || document.body;
-    container.appendChild(bar);
-  }
-  bar.textContent = msg;
-}
-
-async function syncQuotes() {
-  try {
-    // 1) Push local dirty quotes
-    const dirty = quotes.filter(q => q.dirty);
-    if (dirty.length) {
-      const posted = await pushLocalDirtyQuotes(dirty);
-      markSynced(posted);
+    // Function to notify user
+    function notify(message) {
+      notification.textContent = message;
+      notification.style.display = "block";
+      setTimeout(() => notification.style.display = "none", 3000);
     }
 
-    // 2) Fetch from server and merge (server wins)
-    const server = await fetchServerQuotes();
-    mergeFromServer(server);
+    // Sync with server (server wins conflicts)
+    function syncWithServer() {
+      // Compare local and server data
+      if (JSON.stringify(localQuotes) !== JSON.stringify(serverQuotes)) {
+        localQuotes = [...serverQuotes]; // server wins
+        localStorage.setItem("quotes", JSON.stringify(localQuotes));
+        notify("Data synced with server. Conflicts resolved.");
+      } else {
+        notify("Already up-to-date with server.");
+      }
+    }
 
-    // 3) Remember last sync timestamp in sessionStorage (optional)
-    sessionStorage.setItem("lastSyncAt", nowTs());
-    showSyncNotice("Sync OK ✔");
-  } catch (err) {
-    showSyncNotice("Sync failed. Check network.");
-    // console.error(err);
-  }
-}
+    // Button actions
+    document.getElementById("new-quote").addEventListener("click", showQuote);
+    document.getElementById("sync-data").addEventListener("click", syncWithServer);
 
-function injectSyncControls() {
-  const container = document.getElementById("container") || document.body;
+    // Auto sync every 10 seconds
+    setInterval(syncWithServer, 10000);
 
-  const btn = document.createElement("button");
-  btn.id = "syncNowBtn";
-  btn.textContent = "Sync Now";
-  btn.style.marginLeft = "6px";
-  btn.addEventListener("click", syncQuotes);
+    // First load
+    showQuote();
 
-  container.appendChild(btn);
-}
-
-function startSyncLoop() {
-  // Load quotes from localStorage first (if you have loadQuotes)
-  loadQuotes?.();
-
-  // Start periodic sync every 15s
-  if (syncTimer) clearInterval(syncTimer);
-  syncTimer = setInterval(syncQuotes, 15000);
-
-  // Do an immediate sync on load
-  syncQuotes();
-}
-
-// Kick things off when page is ready
-window.addEventListener("load", () => {
-  injectSyncControls();
-  startSyncLoop();
-});
-
-sessionStorage.setItem("lastViewedQuote", JSON.stringify(randomQuote));
-
-try {
-  const last = JSON.parse(sessionStorage.getItem("lastViewedQuote"));
-  if (last && last.text) {
-    document.getElementById("quoteDisplay").innerHTML =
-      `<p>"${last.text}"</p><small>(${last.category})</small>`;
-  }
-} catch (_) {}
 
 
 function createAddQuoteForm() {

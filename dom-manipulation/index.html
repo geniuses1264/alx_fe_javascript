@@ -98,6 +98,38 @@ label[for="categoryFilter"] {
   margin-right: 8px;
 }
 
+ #quote-box {
+      background: white;
+      padding: 20px;
+      margin: 20px auto;
+      width: 60%;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .btn {
+      margin: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn:hover {
+      background: #0056b3;
+    }
+
+    #notification {
+      margin-top: 15px;
+      padding: 10px;
+      background: #ffecb3;
+      border: 1px solid #ff9800;
+      border-radius: 8px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -112,12 +144,17 @@ label[for="categoryFilter"] {
     <!-- Import Quotes Button -->
     <input type="file" id="importJson" accept="application/json">
 
-    
+
     <label for="categoryFilter">Filter by Category: </label>
 <select id="categoryFilter" onchange="filterQuotes()">
   <option value="all">All Categories</option>
 </select>
 
+ <div id="quote-box">
+    <p id="quote">Loading quote...</p>
+    <button class="btn" id="new-quote">New Quote</button>
+    <button class="btn" id="sync-data">Sync with Server</button>
+    <div id="notification"></div>
   </div>
 
 
