@@ -171,55 +171,73 @@ function updateCategoriesOnAdd(newCategory) {
   }
 }
 
- let serverQuotes = [
-      "The future belongs to those who prepare today.",
-      "Stay hungry, stay foolish.",
-      "Simplicity is the ultimate sophistication."
+ const serverQuotes = [
+      { text: "The best way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+      { text: "Don’t let yesterday take up too much of today.", author: "Will Rogers" },
+      { text: "It’s not whether you get knocked down, it’s whether you get up.", author: "Vince Lombardi" }
     ];
 
-    // Local storage data
-    let localQuotes = JSON.parse(localStorage.getItem("quotes")) || [...serverQuotes];
+    // Store fetched quotes
+    let fetchedQuotes = [];
 
-    // UI Elements
-    const quoteDisplay = document.getElementById("quote");
-    const notification = document.getElementById("notification");
+    // Simulate fetching data from server
+    async function fetchQuotesFromServer() {
+      try {
+        // Fake server delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Function to show random local quote
-    function showQuote() {
-      let randomIndex = Math.floor(Math.random() * localQuotes.length);
-      quoteDisplay.textContent = localQuotes[randomIndex];
-    }
+        // Randomly simulate failure
+        if (Math.random() < 0.2) {
+          throw new Error("Server failed to upload a code.");
+        }
 
-    // Function to notify user
-    function notify(message) {
-      notification.textContent = message;
-      notification.style.display = "block";
-      setTimeout(() => notification.style.display = "none", 3000);
-    }
-
-    // Sync with server (server wins conflicts)
-    function syncWithServer() {
-      // Compare local and server data
-      if (JSON.stringify(localQuotes) !== JSON.stringify(serverQuotes)) {
-        localQuotes = [...serverQuotes]; // server wins
-        localStorage.setItem("quotes", JSON.stringify(localQuotes));
-        notify("Data synced with server. Conflicts resolved.");
-      } else {
-        notify("Already up-to-date with server.");
+        return serverQuotes;
+      } catch (error) {
+        throw error;
       }
     }
 
-    // Button actions
-    document.getElementById("new-quote").addEventListener("click", showQuote);
-    document.getElementById("sync-data").addEventListener("click", syncWithServer);
+    async function getQuote() {
+      const quoteEl = document.getElementById("quote");
+      const authorEl = document.getElementById("author");
+      const errorEl = document.getElementById("error");
 
-    // Auto sync every 10 seconds
-    setInterval(syncWithServer, 10000);
+      try {
+        errorEl.textContent = ""; // Clear old errors
+        const quotes = await fetchQuotesFromServer();
+        fetchedQuotes = quotes; // Save them for export
 
-    // First load
-    showQuote();
+        // Pick random quote
+        const random = quotes[Math.floor(Math.random() * quotes.length)];
+        quoteEl.textContent = `"${random.text}"`;
+        authorEl.textContent = `– ${random.author}`;
+      } catch (err) {
+        errorEl.textContent = err.message;
+        quoteEl.textContent = "⚠️ Unable to fetch quote.";
+        authorEl.textContent = "";
+      }
+    }
 
+    function exportQuotes() {
+      if (fetchedQuotes.length === 0) {
+        alert("No quotes available to export. Fetch first.");
+        return;
+      }
 
+      let content = "Exported Quotes:\n\n";
+      fetchedQuotes.forEach(q => {
+        content += `"${q.text}" — ${q.author}\n`;
+      });
+
+      // Download as text file
+      const blob = new Blob([content], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "quotes.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
 
 function createAddQuoteForm() {
   // Create the container div
