@@ -171,73 +171,40 @@ function updateCategoriesOnAdd(newCategory) {
   }
 }
 
- const serverQuotes = [
-      { text: "The best way to get started is to quit talking and begin doing.", author: "Walt Disney" },
-      { text: "Don’t let yesterday take up too much of today.", author: "Will Rogers" },
-      { text: "It’s not whether you get knocked down, it’s whether you get up.", author: "Vince Lombardi" }
-    ];
-
-    // Store fetched quotes
-    let fetchedQuotes = [];
-
-    // Simulate fetching data from server
+  // Fetch quotes from mock API (server simulation)
     async function fetchQuotesFromServer() {
       try {
-        // Fake server delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Randomly simulate failure
-        if (Math.random() < 0.2) {
-          throw new Error("Server failed to upload a code.");
+        const response = await fetch("https://jsonplaceholder.typicode.com/posts");
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch quotes from server");
         }
 
-        return serverQuotes;
+        const data = await response.json();
+
+        // Extract titles as mock quotes
+        return data.map(item => item.title);
       } catch (error) {
-        throw error;
+        console.error("Error fetching data:", error);
+        return ["Oops! Something went wrong while fetching quotes."];
       }
     }
 
-    async function getQuote() {
-      const quoteEl = document.getElementById("quote");
-      const authorEl = document.getElementById("author");
-      const errorEl = document.getElementById("error");
+    // Handle button click
+    document.getElementById("get-quote").addEventListener("click", async () => {
+      const quoteElement = document.getElementById("quote");
 
-      try {
-        errorEl.textContent = ""; // Clear old errors
-        const quotes = await fetchQuotesFromServer();
-        fetchedQuotes = quotes; // Save them for export
+      // Fetch quotes
+      const quotes = await fetchQuotesFromServer();
 
-        // Pick random quote
-        const random = quotes[Math.floor(Math.random() * quotes.length)];
-        quoteEl.textContent = `"${random.text}"`;
-        authorEl.textContent = `– ${random.author}`;
-      } catch (err) {
-        errorEl.textContent = err.message;
-        quoteEl.textContent = "⚠️ Unable to fetch quote.";
-        authorEl.textContent = "";
-      }
-    }
+      // Pick random one
+      const randomIndex = Math.floor(Math.random() * quotes.length);
+      const randomQuote = quotes[randomIndex];
 
-    function exportQuotes() {
-      if (fetchedQuotes.length === 0) {
-        alert("No quotes available to export. Fetch first.");
-        return;
-      }
+      // Display quote
+      quoteElement.textContent = randomQuote;
+    });
 
-      let content = "Exported Quotes:\n\n";
-      fetchedQuotes.forEach(q => {
-        content += `"${q.text}" — ${q.author}\n`;
-      });
-
-      // Download as text file
-      const blob = new Blob([content], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "quotes.txt";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
 
 function createAddQuoteForm() {
   // Create the container div
