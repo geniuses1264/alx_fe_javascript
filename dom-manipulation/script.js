@@ -8,12 +8,23 @@ let quotes = [
   { text: "Do not take life too seriously. You will never get out of it alive.", category: "wisdom" }
 ];
 
+// ✅ Load saved quotes from localStorage (if any)
+if (localStorage.getItem("quotes")) {
+  quotes = JSON.parse(localStorage.getItem("quotes"));
+}
+
+// ✅ Save quotes to localStorage
+function saveQuotes() {
+  localStorage.setItem("quotes", JSON.stringify(quotes));
+}
+
 // ✅ Function: Select a random quote and update DOM
 function showRandomQuote() {
   if (quotes.length === 0) {
     document.getElementById("quoteDisplay").innerHTML = "No quotes available.";
     return;
   }
+
   let randomIndex = Math.floor(Math.random() * quotes.length);
   let randomQuote = quotes[randomIndex];
 
@@ -21,6 +32,9 @@ function showRandomQuote() {
     <p>"${randomQuote.text}"</p>
     <small>(${randomQuote.category})</small>
   `;
+
+  // ✅ Store last viewed quote in sessionStorage
+  sessionStorage.setItem("lastQuote", JSON.stringify(randomQuote));
 }
 
 // ✅ Function: Add a new quote dynamically
@@ -36,47 +50,65 @@ function addQuote() {
   // Add to quotes array
   quotes.push({ text: newQuoteText, category: newQuoteCategory });
 
-  alert(`✅ Quote added to category: ${newQuoteCategory}`);
+  // ✅ Save updated quotes
+  saveQuotes();
+
+  alert(`✅ Quote added successfully! Category: ${newQuoteCategory}`);
 
   // Clear input fields
   document.getElementById("newQuoteText").value = "";
   document.getElementById("newQuoteCategory").value = "";
-
-  // Save to localStorage also (Part 2)
-  saveQuotes();
 }
 
 // ✅ Event listener on "Show New Quote" button
 document.getElementById("newQuote").addEventListener("click", showRandomQuote);
 
-// Function to show a random quote (duplicate in your code, kept intact)
-function showRandomQuote() {
-  let randomIndex = Math.floor(Math.random() * quotes.length);
-  let randomQuote = quotes[randomIndex];
-  document.getElementById("quoteDisplay").innerHTML =
-    `"${randomQuote.text}" <br><small>(${randomQuote.category})</small>`;
+// ✅ Export quotes as JSON
+function exportQuotes() {
+  const blob = new Blob([JSON.stringify(quotes, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "quotes.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+document.getElementById("exportQuotesBtn").addEventListener("click", exportQuotes);
+
+// ✅ Import quotes from JSON file
+function importFromJsonFile(event) {
+  const fileReader = new FileReader();
+  fileReader.onload = function(e) {
+    try {
+      const importedQuotes = JSON.parse(e.target.result);
+      if (Array.isArray(importedQuotes)) {
+        quotes.push(...importedQuotes);
+        saveQuotes();
+        alert("✅ Quotes imported successfully!");
+      } else {
+        alert("⚠️ Invalid JSON format.");
+      }
+    } catch (error) {
+      alert("⚠️ Error reading file.");
+    }
+  };
+  fileReader.readAsText(event.target.files[0]);
 }
 
-// Function to add a new quote (duplicate in your code, kept intact)
-function addQuote() {
-  let newQuoteText = document.getElementById("newQuoteText").value.trim();
-  let newQuoteCategory = document.getElementById("newQuoteCategory").value.trim().toLowerCase();
-
-  if (!newQuoteText || !newQuoteCategory) {
-    alert("⚠️ Please enter both quote and category!");
-    return;
+// ✅ Restore last viewed quote from sessionStorage on page load
+window.onload = function() {
+  const lastQuote = sessionStorage.getItem("lastQuote");
+  if (lastQuote) {
+    const quoteObj = JSON.parse(lastQuote);
+    document.getElementById("quoteDisplay").innerHTML =
+      `"${quoteObj.text}" <br><small>(${quoteObj.category})</small>`;
   }
-
-  quotes.push({ text: newQuoteText, category: newQuoteCategory });
-
-  alert("✅ Quote added successfully!");
-  document.getElementById("newQuoteText").value = "";
-  document.getElementById("newQuoteCategory").value = "";
-
-  saveQuotes(); // Part 2
-}
+};
 
 //Run functions when page loads
+
 function createAddQuoteForm() {
   // Create the container div
   const div = document.createElement("div");
@@ -110,70 +142,3 @@ function createAddQuoteForm() {
 
 // Call the function to add it to the DOM
 createAddQuoteForm();
-
-
-// ======================
-// ✅ PART 2 EXTENSION
-// ======================
-
-// Load from localStorage
-function loadQuotes() {
-  const stored = localStorage.getItem("quotes");
-  if (stored) {
-    quotes = JSON.parse(stored);
-  }
-}
-loadQuotes();
-
-// Save to localStorage
-function saveQuotes() {
-  localStorage.setItem("quotes", JSON.stringify(quotes));
-}
-
-// Export quotes to JSON file
-function exportToJsonFile() {
-  const dataStr = JSON.stringify(quotes, null, 2);
-  const blob = new Blob([dataStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "quotes.json";
-  link.click();
-
-  URL.revokeObjectURL(url);
-}
-
-// Import quotes from JSON file
-function importFromJsonFile(event) {
-  const fileReader = new FileReader();
-  fileReader.onload = function(e) {
-    const importedQuotes = JSON.parse(e.target.result);
-    quotes.push(...importedQuotes);
-    saveQuotes();
-    alert("✅ Quotes imported successfully!");
-  };
-  fileReader.readAsText(event.target.files[0]);
-}
-
-// Add Export & Import buttons dynamically
-function createImportExportUI() {
-  const container = document.createElement("div");
-  container.style.marginTop = "20px";
-
-  // Export button
-  const exportBtn = document.createElement("button");
-  exportBtn.textContent = "Export Quotes (JSON)";
-  exportBtn.onclick = exportToJsonFile;
-  container.appendChild(exportBtn);
-
-  // Import input
-  const importInput = document.createElement("input");
-  importInput.type = "file";
-  importInput.accept = ".json";
-  importInput.onchange = importFromJsonFile;
-  container.appendChild(importInput);
-
-  document.body.appendChild(container);
-}
-createImportExportUI();

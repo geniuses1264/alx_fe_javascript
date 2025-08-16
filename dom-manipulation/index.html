@@ -1,93 +1,86 @@
 <!DOCTYPE html>
-  <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Quote Generator</title>
-    <style>
-      *{
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      body{
-        background-color: rgb(45, 247, 5);
-        font-family: Arial, Helvetica, sans-serif;
-        color: aliceblue;
-        height: 100vh;
-         display: flex;
-         justify-content: center;
-         align-items: center;
-      }
-      #container{
-        background-color: rgb(255, 145, 2);
-        padding: 30px;
-        text-align: center;
-      }
-
-      h1{
-        padding: 20px;
-      }
-      input{
-        display: block;
-        padding: 10px 100px;
-        margin: 10px;
-       font-size: 18px;
-       border: none;
-       text-align:justify;
-      }
-        input:focus{
-        border: none;
-        outline: none;
-      }
-       #userInput{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-       }
-       button{
-        padding: 10px 20px;
-        margin: 10px;
-        border: none;
-        background-color:  blueviolet;
-        font-size: 18px;
-        border-radius: 10px;
-        cursor: pointer;
-        color: aliceblue;
-       }
-        button:hover{
-        background-color: rgb(126, 0, 243);
-       
-       }
-       #quoteDisplay{
-        background-color: aliceblue;
-        height: 100px;
-        border-radius: 10px;
-        outline: 3px solid rgb(71, 0, 104);
-        color: black;
-        text-align: center;
-        display: center;
-        padding-top: 10px;
-       }
-       button:active{
-        background-color: rgb(150, 44, 248);
-        
-       }
-    </style>
-  </head>
-  <body>
-    <div id="container">
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Quote Generator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: rgb(45, 247, 5);
+      font-family: Arial, Helvetica, sans-serif;
+      color: aliceblue;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #container {
+      background-color: rgb(255, 145, 2);
+      padding: 30px;
+      text-align: center;
+      border-radius: 12px;
+    }
+    h1 {
+      padding: 20px;
+    }
+    input {
+      display: block;
+      padding: 10px 100px;
+      margin: 10px;
+      font-size: 18px;
+      border: none;
+      text-align: justify;
+    }
+    input:focus {
+      border: none;
+      outline: none;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      background-color: blueviolet;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      color: aliceblue;
+    }
+    button:hover {
+      background-color: rgb(126, 0, 243);
+    }
+    #quoteDisplay {
+      background-color: aliceblue;
+      height: 100px;
+      border-radius: 10px;
+      outline: 3px solid rgb(71, 0, 104);
+      color: black;
+      text-align: center;
+      padding-top: 10px;
+      margin-bottom: 15px;
+    }
+    button:active {
+      background-color: rgb(150, 44, 248);
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
     <h1>Dynamic Quote Generator</h1>
     <div id="quoteDisplay"></div>
     <button id="newQuote">Show New Quote</button>
 
-     <!--div id="userInput">
-    <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
-    <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
-    <button onclick="addQuote()">Add Quote</button>
-    </div-->
+    <!-- Export Quotes Button -->
+    <button id="exportQuotesBtn">Export Quotes</button>
+
+    <!-- Import Quotes Button -->
+    <input type="file" id="importJson" accept="application/json">
   </div>
-    <script src="script.js"></script>
-  </body>
-  </html>
+
+  <script src="script.js"></script>
+</body>
+</html>
