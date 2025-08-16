@@ -108,6 +108,67 @@ window.onload = function() {
 };
 
 //Run functions when page loads
+// Populate categories dynamically from the quotes array
+function populateCategories() {
+  const categoryFilter = document.getElementById("categoryFilter");
+  const categories = [...new Set(quotes.map(q => q.category))]; // unique categories
+
+  // Clear old options (except "All Categories")
+  categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+
+  categories.forEach(category => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+    categoryFilter.appendChild(option);
+  });
+
+  // Restore last selected category from localStorage
+  const savedCategory = localStorage.getItem("selectedCategory");
+  if (savedCategory) {
+    categoryFilter.value = savedCategory;
+    filterQuotes(); // apply saved filter
+  }
+}
+
+// Filter quotes based on selected category
+function filterQuotes() {
+  const selectedCategory = document.getElementById("categoryFilter").value;
+  const quotesContainer = document.getElementById("quotesContainer");
+
+  quotesContainer.innerHTML = ""; // clear old quotes
+
+  const filteredQuotes = selectedCategory === "all" 
+    ? quotes 
+    : quotes.filter(q => q.category === selectedCategory);
+
+  filteredQuotes.forEach(quote => {
+    const quoteDiv = document.createElement("div");
+    quoteDiv.classList.add("quote");
+    quoteDiv.innerHTML = `
+      <p>${quote.text}</p>
+      <p><strong>- ${quote.author}</strong></p>
+      <p><em>Category: ${quote.category}</em></p>
+    `;
+    quotesContainer.appendChild(quoteDiv);
+  });
+
+  // Save selected category in localStorage
+  localStorage.setItem("selectedCategory", selectedCategory);
+}
+
+// Update categories if new quote with a new category is added
+function updateCategoriesOnAdd(newCategory) {
+  const categoryFilter = document.getElementById("categoryFilter");
+  const options = Array.from(categoryFilter.options).map(opt => opt.value);
+
+  if (!options.includes(newCategory)) {
+    const option = document.createElement("option");
+    option.value = newCategory;
+    option.textContent = newCategory;
+    categoryFilter.appendChild(option);
+  }
+}
 
 function createAddQuoteForm() {
   // Create the container div

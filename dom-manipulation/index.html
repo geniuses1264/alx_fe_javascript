@@ -66,6 +66,38 @@
     button:active {
       background-color: rgb(150, 44, 248);
     }
+    /* Container styling */
+#categoryFilter {
+  padding: 8px 12px;
+  font-size: 16px;
+  border: 2px solid #6c63ff;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 10px;
+}
+
+/* Hover and focus effects */
+#categoryFilter:hover,
+#categoryFilter:focus {
+  border-color: #4b47cc;
+  box-shadow: 0 0 8px rgba(108, 99, 255, 0.4);
+  outline: none;
+}
+
+/* Label styling */
+label[for="categoryFilter"] {
+  font-weight: bold;
+  color: #444;
+  font-size: 16px;
+}
+
+label[for="categoryFilter"] {
+  margin-right: 8px;
+}
+
   </style>
 </head>
 <body>
@@ -79,7 +111,15 @@
 
     <!-- Import Quotes Button -->
     <input type="file" id="importJson" accept="application/json">
+
+    
+    <label for="categoryFilter">Filter by Category: </label>
+<select id="categoryFilter" onchange="filterQuotes()">
+  <option value="all">All Categories</option>
+</select>
+
   </div>
+
 
   <script src="script.js"></script>
 </body>
