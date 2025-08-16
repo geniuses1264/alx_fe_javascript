@@ -72,18 +72,7 @@ function addQuote() {
   document.getElementById("newQuoteCategory").value = "";
 }
 
-// Function to create the add quote form dynamically
-function createAddQuoteForm() {
-  let container = document.getElementById("quoteFormContainer");
-
-  container.innerHTML = `
-    <input type="text" id="newQuoteText" placeholder="Enter new quote">
-    <input type="text" id="newQuoteCategory" placeholder="Enter category">
-    <button onclick="addQuote()">Add Quote</button>
-  `;
-}
-
-// Run functions when page loads
+//Run functions when page loads
 
 function createAddQuoteForm() {
   // Create the container div
@@ -115,9 +104,6 @@ function createAddQuoteForm() {
   // Append the div to the body or another container
   document.body.appendChild(div);
 }
-window.onload = function () {
-  createAddQuoteForm();  
-  showRandomQuote(); // optional
-};
+
 // Call the function to add it to the DOM
 createAddQuoteForm();
